@@ -1,0 +1,13 @@
+target_username: ""
+
+user_pass: ""
+
+user_groups:
+  - sudo
+  - wheel
+  - hugepage
+  - docker
+
+# Path to public keyfile is required to be set
+user_keyfile: ""
+

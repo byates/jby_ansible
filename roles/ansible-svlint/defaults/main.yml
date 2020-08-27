@@ -1,0 +1,7 @@
+# Git tag is used when downloading the archive
+svlint_git_tag: "0.4.7"
+# When true and not using an appimage then always reinstall
+svlint_force_update: False
+# where the binary will be placed
+svlint_install_prefix: "/home/{{ target_user }}/.local/bin"
+

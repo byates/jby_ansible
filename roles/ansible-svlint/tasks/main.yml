@@ -1,0 +1,27 @@
+---
+# tasks file for ansible-svlint
+#
+- name: Check if svlint is installed
+  command: svlint -V
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: version_check
+
+- set_fact:
+    svlint_version: "{{ version_check.stdout | regex_replace('^svlint ([0-9.]+)$', '\\1') }}"
+  when: >
+    (version_check.rc == 0)
+
+- set_fact: svlint_ver_match="{{ svlint_git_tag is search(svlint_version | default("xxx")) }}"
+
+- name: Force install if the version numbers do not match.
+  set_fact:
+    svlint_do_install: true
+  when: >
+    svlint_force_update or
+    (not svlint_ver_match)
+
+- include_tasks: install_from_archive.yml
+  when: (svlint_do_install | default(false))
+

@@ -1,0 +1,13 @@
+# This user is the targer for user level setup and configuraiton.
+#
+# User rules:
+#   If the host is in the group 'jby_user' then the user will always be 'byates'
+#   If the host is NOT in the 'jby_user' group then the user will be the login user.
+#
+# The 'target_user' can be overwritten on the command line by using the '-e' option:
+#   ansible-playbook -i build-inventory.py --limit localhost common.yml -Kk -e "target_user=byates"
+#
+active_user: "{{ ansible_user | default('127.0.0.1') }}"
+target_user: "{{ ('jby_user' in group_names) | ternary('byates', active_user) }}"
+# Indicates that we are running within WSL
+wsl_active: "{{ lookup('env', 'WSL_DISTRO_NAME') != ''  }}"

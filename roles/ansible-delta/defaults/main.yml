@@ -1,0 +1,8 @@
+delta_version: "0.0.16"
+
+delta_dest: "/usr/bin"
+
+force_update: False
+
+reinstall: False
+

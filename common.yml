@@ -1,0 +1,137 @@
+---
+
+- name: Verify supported platforms
+  hosts: all
+  gather_facts: True
+  tasks:
+  - name: Assert platform is supported
+    assert:
+      that:
+        - ansible_os_family in ['Debian', 'RedHat', 'Pop!_OS']
+        - ansible_architecture in ['x86_64']
+
+- name: Update all packages
+  hosts: all
+  strategy: free
+  become: true
+  roles:
+  - role: ansible-pkg-update
+    when: 1
+
+- name: Set hostname
+  hosts: all
+  strategy: free
+  become: true
+  roles:
+  - role: set-hostname
+    when: 1 and (inventory_hostname != "127.0.0.1")
+
+- name: Create byates user
+  hosts: byates
+  strategy: free
+  become: true
+  roles:
+  - role: create-user
+    vars:
+      target_username: "byates"
+      user_pass: "$6$ZELhWYeJcUlqA9On$9fgrweq7LQ5/hE0fdYEdwdlCvh6JPG0Bwt.69o7WfRJR6aLsYqTqGMB3HpRx8Dp6795aB7rgghGQLp8eMAIuf/:18469:0:99999:7:::"
+      user_keyfile: "~/.ssh/id_rsa_esd_byates.pub"
+    when: 1
+
+- name: Install common packages - not dev packages
+  hosts: all
+  strategy: free
+  become: yes
+  roles:
+  - role: robertdebock.powertools
+  - { role: grog.package,
+        package_list: [
+          { name: epel-release,
+            apt_ignore: yes },
+          { name: git },
+          { name: python3 },
+          { name: python3-pip },
+          { name: python3-apt,
+            yum_ignore: yes,
+            dnf_ignore: yes },
+          { name: net-tools },
+          { name: tar },
+          { name: htop },
+          { name: tree },
+          { name: curl },
+          { name: wget },
+          { name: unzip },
+        ],
+      when: 1
+    }
+  tasks:
+    - name: Set python3 as default system python
+      alternatives:
+        name: python
+        path: /usr/bin/python3
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '8'
+
+- name: Install recent GIT version
+  hosts: all
+  strategy: free
+  become: yes
+  roles:
+  - role: geerlingguy.git
+    vars:
+      git_install_from_source: true
+      git_install_path: "/usr"
+      git_version: "2.25.0"
+      git_install_from_source_force_update: true
+    when: 1
+  - role: ansible-delta
+    become: yes
+    when: 1
+
+- name: Install nvim via snaps
+  hosts: all
+  strategy: free
+  become: true
+  roles:
+  - role: ansible-nvim-snap
+    when: 1
+
+- name: Install tmux
+  hosts: all
+  strategy: free
+  become: true
+  roles:
+  - role: ansible-tmux
+    tmux_use_appimage: False
+    when: 1
+
+- name: Install hugepage support for DPDK
+  hosts: dpdk
+  strategy: free
+  roles:
+    - role: ansible-hugepages
+      become: yes
+      vars:
+        desired_1g_pages: 2
+        desired_2m_pages: 1024
+      when: 1
+
+- name: Update various configs to match JBYs desires
+  hosts: jbyconfig
+  become: "{{ target_user != ansible_user }}"
+  roles:
+  - role: jby-git-config
+    vars:
+      target_username: "{{ target_user }}"
+
+  - role: jby-profile-config
+    vars:
+      target_username: "{{ target_user }}"
+
+  - role: jby-nvim-config
+    vars:
+      target_username: "{{ target_user }}"
+
+  - role: jby-tmux-config
+    vars:
+      target_username: "{{ target_user }}"
+

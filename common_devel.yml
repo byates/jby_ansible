@@ -1,0 +1,165 @@
+---
+
+- name: Get the current kernel release.
+  hosts: devel
+  gather_facts: True
+  tasks:
+  - debug:
+      msg: Updating config for user "{{ target_user }}"
+  - name: uname -r
+    command: uname -r
+    changed_when: false
+    register: kernel_release
+
+- name: Install development packages
+  hosts: devel
+  roles:
+  - { role: grog.package,
+      become: yes,
+        package_list: [
+          { name: "@Development Tools",
+            apt: build-essential },
+          { name: gettext-devel,
+            apt: gettext },
+          { name: openssl-devel,
+            apt: libssl-dev },
+          { name: perl-devel,
+            apt: perl},
+          { name: zlib-devel,
+            apt: zlib1g },
+          { name: python3-devel,
+            apt: libpython3-dev,
+            dnf: python3-devel },
+          { name: ncurses-devel,
+            apt: libncurses-dev },
+          { name: numactl-devel,
+            apt: libnuma-dev },
+          { name: libpcap-devel,
+            apt: libpcap-dev },
+          { name: libaio,
+            apt: libaio1 },
+          { name: libaio-devel,
+            apt: libaio-dev },
+          { name: elfutils-libelf-devel,
+            apt: libelf-dev },
+          { name: flex },
+          { name: bison },
+          { name: hwloc },
+          { name: iperf3 },
+          { name: ninja-build },
+          { name: meson },
+          { name: ctags },
+        ],
+      when: 1
+    }
+
+- name: Install kernel packages
+  hosts: devel
+  roles:
+  - { role: grog.package,
+      become: yes,
+        package_list: [
+          { name: kernel-headers,
+            apt: "linux-headers-generic"},
+          { name: kernel-devel,
+            apt: "linux-headers-{{ kernel_release.stdout }}"},
+          { name: "kernel-devel-{{ kernel_release.stdout }}",
+            apt_ignore: yes},
+          { name: kexec-tools },
+        ],
+      when: not wsl_active
+    }
+
+- name: Install packages from roles
+  hosts: devel
+  roles:
+  - role: ansible-ripgrep
+    become: yes
+    when: 1
+  - role: ansible-clang
+    become: yes
+    when: 1
+  - role: ansible-bat
+    become: yes
+    when: 1
+  - role: ansible-protobuf
+    become: yes
+    protobuf_version: 4.0.0-rc2
+    protobuf_name: 4.0.0-rc-2
+    protoc_checksum: sha256:568ae47c4fd83281c4c76d6c3c96d9ba45704f220bb6ce4197b9f86aba05848c
+    protoc_force_update: false
+    when: 1
+
+- name: Install CMAKE via snap
+  hosts: devel
+  become: yes
+  tasks:
+  - snap:
+      name: cmake
+      classic: yes
+    when: not wsl_active
+
+- name: Install cmake via apt
+  hosts: devel
+  roles:
+  - { role: grog.package,
+      become: yes,
+        package_list: [
+          { name: cmake},
+        ],
+      when: wsl_active
+    }
+
+- name: Install docker
+  hosts: devel
+  roles:
+  - role: geerlingguy.docker
+    become: yes
+    vars:
+      docker_edition: 'ce'
+      docker_package_state: latest
+      docker_install_compose: true
+      docker_compose_version: "1.25.4"
+    when: 1 and ( ansible_distribution_release != "eoan") and ( ansible_distribution_release != "focal")
+
+- name: Install docker.io
+  hosts: devel
+  roles:
+  - role: grog.package
+    become: yes
+    vars:
+      package_list:
+      - name: docker.io
+    when: 1 and ( ansible_distribution_release == "focal")
+
+- name: Make sure ~/go exists
+  hosts: devel
+  become: "{{ target_user != active_user }}"
+  become_user: "{{ target_user }}"
+  tasks:
+  - debug:
+      msg: Updating config for user "{{ target_user }}"
+  - file:
+      path: "~/go"
+      state: directory
+
+- name: Install Golang
+  hosts: devel
+  become: yes
+  roles:
+  - role: yogo1212.ansible_go
+    vars:
+      go_version: "1.14"
+    when: 1
+
+- name: Install Go module lazygit
+  hosts: devel
+  become: "{{ target_user != active_user }}"
+  become_user: "{{ target_user }}"
+  roles:
+  - role: ansible-go-get-mod
+    mod_list:
+    - name: lazygit
+      url: github.com/jesseduffield/lazygit
+    when: 1
+

@@ -1,0 +1,8 @@
+---
+
+#file: soc_dev.yml
+# Sets up the environment for SoC (ARM) development.
+- name: soc development playbook
+  hosts: soc_dev
+  roles:
+

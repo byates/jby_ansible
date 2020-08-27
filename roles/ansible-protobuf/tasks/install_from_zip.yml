@@ -1,0 +1,39 @@
+---
+- name: 'Download protoc binary {{ protobuf_version }}'
+  get_url:
+    url: https://github.com/protocolbuffers/protobuf/releases/download/v{{ protobuf_version }}/protoc-{{ protobuf_name }}-linux-x86_64.zip
+    dest: /tmp/protobuf-{{ protobuf_name }}-linux-x86_64.zip
+    checksum: '{{ protoc_checksum }}'
+
+- name: Ensure protoc unpack directory exists
+  file:
+    path: /tmp/protoc
+    state: directory
+
+- name: 'Unarchive protoc {{ protobuf_version }} binary'
+  unarchive:
+    src: /tmp/protobuf-{{ protobuf_name }}-linux-x86_64.zip
+    dest: /tmp/protoc
+    remote_src: true
+
+- name: Copy Protoc binary to /usr/local/bin
+  copy:
+    src: /tmp/protoc/bin/protoc
+    dest: /usr/local/bin/protoc
+    mode: 0755
+    owner: root
+    remote_src: true
+  become: true
+
+- name: Copy Protoc includes to /usr/local/include
+  command: cp -r /tmp/protoc/include/google /usr/local/include
+  when: true
+  become: true
+
+- name: Set permissions on /usr/local/include/google
+  file:
+    path: /usr/local/include/google
+    mode: 0755
+    owner: root
+    recurse: true
+  become: true

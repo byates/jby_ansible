@@ -1,0 +1,23 @@
+---
+# tasks file for jby-git-config
+#
+# install jbyconfig repo in home/<target-user>
+- name: Clone jbyconfig repo to user home directory
+  become_user: "{{ target_username }}"
+  git:
+    repo: https://github.com/byates/jbyconfig.git
+    dest: "/home/{{ target_username }}/jbyconfig"
+    version: master
+    update: yes
+  # This is a hack to handle the case where there is already a repo which already
+  # has remotes. When this is the case, this module fails.
+  failed_when: false
+
+- name: Add include directive to <user>.gitconfig
+  become_user: "{{ target_username }}"
+  ini_file:
+    path: "/home/{{ target_username }}/.gitconfig"
+    section: include
+    option: path
+    value: "/home/{{ target_username }}/jbyconfig/gitconfig.inc"
+

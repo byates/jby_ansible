@@ -1,0 +1,17 @@
+---
+- name: restart machine
+  reboot:
+
+- name: update grub config
+  command: "{{ grub_update_cmd }}"
+  notify:
+    - set bootloader file permissions after updating grub config
+
+# NOTE(mhayden): Running `update-grub` causes the bootloader permissions to
+# change, which breaks V-38583.
+- name: set bootloader file permissions after updating grub config
+  file:
+    path: "{{ grub_config_file_boot }}"
+    mode: "0644"
+  ignore_errors: yes
+    

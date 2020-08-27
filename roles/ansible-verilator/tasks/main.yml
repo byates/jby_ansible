@@ -1,0 +1,27 @@
+---
+# tasks file for ansible-verilator
+#
+- name: Check if verilator is installed
+  command: verilator --version
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: version_check
+
+- set_fact:
+    verilator_version: "{{ version_check.stdout | regex_replace('^Verilator ([0-9.]+) .*', '\\1') }}"
+  when: >
+    (version_check.rc == 0)
+
+- set_fact: verilator_ver_match="{{ verilator_git_tag is search(verilator_version | default("xxx")) }}"
+
+- name: Force install if the version numbers do not match.
+  set_fact:
+    verilator_do_install: true
+  when: >
+    verilator_force_update or
+    (not verilator_ver_match)
+
+- include_tasks: install_from_src.yml
+  when: (verilator_do_install | default(false))
+

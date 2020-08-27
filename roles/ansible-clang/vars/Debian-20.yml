@@ -1,0 +1,3 @@
+---
+clang_version: 10
+llvm_apt_repo: deb http://apt.llvm.org/focal/ llvm-toolchain-focal-10 main

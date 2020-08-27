@@ -1,0 +1,24 @@
+---
+# tasks file for ansible-tmux
+#
+- name: Check if tmux is installed
+  command: /usr/local/bin/tmux -V
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: version_check
+
+- name: Force install if the version numbers do not match.
+  set_fact:
+    tmux_do_install: true
+  when: >
+    tmux_force_update or
+    (version_check.rc != 0) or
+    (version_check.stdout | regex_replace("^tmux (.+)$", "\\1") is version(tmux_git_tag, operator="!="))
+
+- include_tasks: install_from_appimage.yml
+  when: (tmux_do_install | default(false)) and (tmux_use_appimage)
+
+- include_tasks: install_from_src.yml
+  when: (tmux_do_install | default(false)) and (not tmux_use_appimage)
+

@@ -1,0 +1,21 @@
+---
+
+# 7.0 is the latest supported so that's all we do for now.
+- name: Intall centos-release-scl
+  yum:
+    name: centos-release-scl
+    state: present
+  become: yes
+
+- name: Install devtoolset-7.0
+  yum:
+    name: llvm-toolset-7.0
+    state: present
+  become: yes
+
+- name: Install llvm-toolset-7.0-clang-tools-extra
+  yum:
+    name: llvm-toolset-7.0-clang-tools-extra
+    state: present
+  become: yes
+

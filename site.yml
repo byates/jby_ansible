@@ -1,0 +1,6 @@
+---
+#file: site.yml
+- import_playbook: common.yml
+- import_playbook: common_devel.yml
+- import_playbook: hdl_devel.yml
+

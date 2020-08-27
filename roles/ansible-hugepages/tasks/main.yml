@@ -1,0 +1,100 @@
+---
+# tasks file for ansible-hugepages
+#
+- name: Include role variables
+  include_vars: "vars/main.yml"
+
+- name: Gather variables for each operating system
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}.yml"
+    - "{{ ansible_os_family | lower }}.yml"
+  tags:
+    - always
+
+- name: Create custom facts directory
+  file: >
+    path=/etc/ansible/facts.d
+    recurse=yes
+    state=directory
+
+- name: Install custom facts modules
+  template: >
+    src={{ item }}
+    dest=/etc/ansible/facts.d/
+    mode=0755
+  with_fileglob:
+    - facts.d/*
+
+- name: Reload ansible_local
+  setup: filter=ansible_local
+
+- name: Check hugepages support
+  fail: msg="Hugepage support was not detected on your system.  Hugepage support is required for DPDK."
+  when: ansible_local.hugepages.hugepages_1G == false and ansible_local.hugepages.hugepages_2M == false
+
+- debug:
+    msg: Hugepages_1G={{ ansible_local.hugepages.hugepages_1G }}   Hugepages_2M={{ ansible_local.hugepages.hugepages_2M }}
+
+- name: Check to see if we are booting with EFI or UEFI
+  set_fact:
+    booted_with_efi: "{{ ansible_mounts | selectattr('mount', 'equalto', '/boot/efi') | list | length > 0 }}"
+  tags:
+    - always
+
+- name: Set facts
+  set_fact:
+    grub_config_file_boot: "{{ booted_with_efi | ternary(grub_conf_file_efi, grub_conf_file) }}"
+  tags:
+    - always
+
+- name: Install hugepage packages
+  include_role:
+    name: grog.package
+  vars:
+    package_list:
+      - name: libhugetlbfs
+        apt_ignore: yes
+        dnf: libhugetlbfs
+        yum: libhugetlbfs
+      - name: libhugetlbfs-dev
+        apt: libhugetlbfs-dev
+        dnf: libhugetlbfs-utils
+        yum: libhugetlbfs-utils
+
+- name: Add configuration to GRUB - 1G
+  lineinfile:
+    path: "{{ grub_base_path }}"
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+    line: "GRUB_CMDLINE_LINUX_DEFAULT=\"default_hugepagesz=1G hugepagesz=1G hugepages={{ num_1G_pages }}\""
+  register: grub_1g_changed
+  when: ansible_local.hugepages.hugepages_1G == true
+  notify:
+    - update grub config
+
+- name: Add configuration to GRUB - 2M
+  lineinfile:
+    path: "{{ grub_base_path }}"
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+    line: "GRUB_CMDLINE_LINUX_DEFAULT=\"default_hugepagesz=2M hugepagesz=2M hugepages={{ num_2M_pages }}\""
+  register: grub_2m_changed
+  when: ansible_local.hugepages.hugepages_1G == false and ansible_local.hugepages.hugepages_2M == true
+  notify:
+    - update grub config
+
+- name: Change MLOCK hard limits
+  lineinfile:
+    path: /etc/security/limits.conf
+    regexp: '^\*[ \t]+hard[ \t]+memlock'
+    line: "*    hard    memlock   1048576"
+
+- name: Change MLOCK soft limits
+  lineinfile:
+    path: /etc/security/limits.conf
+    regexp: '^\*[ \t]+soft[ \t]+memlock'
+    line: "*    soft    memlock   1048576"
+
+

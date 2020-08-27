@@ -1,0 +1,23 @@
+---
+
+# install jbyconfig repo in home/target_username
+- name: Clone jbyconfig repo to user home directory
+  become_user: "{{ target_username }}"
+  git:
+    repo: https://github.com/byates/jbyconfig.git
+    dest: "/home/{{ target_username }}/jbyconfig"
+    version: master
+    update: yes
+  # This is a hack to handle the case where there is already a repo which already
+  # has remotes. When this is the case, this module fails.
+  failed_when: false
+
+- name: Create symbolic link to tmux config file
+  become_user: "{{ target_username }}"
+  become: yes
+  file:
+    src: "/home/{{ target_username }}/jbyconfig/tmux.conf"
+    dest: "/home/{{ target_username }}/.tmux.conf"
+    state: link
+
+

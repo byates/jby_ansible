@@ -1,0 +1,9 @@
+# Git tag is used when building from source
+tmux_git_tag: "3.0a"
+# If true, an appimage is downloaded and used. Otherwise tmux is built from source.
+tmux_use_appimage: True
+# When true and not using an appimage then always rebuild from source
+tmux_force_update: False
+# where the binary will be placed
+tmux_bin_dest: "/usr/local/bin"
+

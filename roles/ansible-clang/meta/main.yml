@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  author: "Charles Francoise"
+  description: "Ansible role that installs Clang (https://clang.llvm.org/)"
+  license: MIT
+  min_ansible_version: 2.0
+  platforms:
+    - name: Ubuntu
+      versions:
+        - trusty
+        - xenial
+        - zesty
+        - artful
+        - bionic
+    - name: Debian
+      versions:
+        - jessie
+        - stretch
+        - sid
+  galaxy_tags:
+    - development
+dependencies: []

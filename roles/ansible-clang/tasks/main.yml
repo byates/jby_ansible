@@ -1,0 +1,13 @@
+---
+
+#- include_tasks: "{{ ansible_distribution }}.yml"
+
+- include_tasks: "{{ lookup('first_found', install_file) }}"
+  vars:
+    install_file:
+      - "{{ ansible_distribution|replace(' ', '_') }}-{{ ansible_distribution_major_version }}.yml"
+      - "{{ ansible_distribution|replace(' ', '_') }}.yml"
+      - "{{ ansible_os_family }}.yml"
+      - "default.yml"
+
+

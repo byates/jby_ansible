@@ -1,0 +1,19 @@
+---
+# tasks file for ansible-bat
+#
+- name: Check if bat is installed
+  command: bat --version
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: version_check
+
+- name: Force install if the version numbers do not match.
+  set_fact:
+    reinstall: true
+  when:
+    - force_update or (version_check.rc != 0) or (version_check.stdout | regex_replace("^.*?([0-9\.]+)$", "\\1") is version(bat_version, operator="!="))
+
+- include_tasks: install_bat.yml
+  when: reinstall
+

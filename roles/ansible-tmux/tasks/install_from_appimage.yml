@@ -1,0 +1,17 @@
+---
+# tasks file for ansible-tmux
+#
+- name: Make sure prereqs are installed
+  include_role:
+    name: grog.package
+  vars:
+    package_list:
+      - name: fuse-sshfs
+        apt: fuse
+
+- name: Download and extract the binary file
+  get_url:
+    url: "https://github.com/tmux/tmux/releases/download/{{tmux_git_tag}}/tmux-{{tmux_git_tag}}-x86_64.AppImage"
+    dest: "{{ tmux_bin_dest }}/tmux"
+    mode: '0755'
+

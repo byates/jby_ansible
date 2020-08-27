@@ -1,0 +1,7 @@
+# Git tag is used when building from source
+verilator_git_tag: "4.038"
+# When true and not using an appimage then always rebuild from source
+verilator_force_update: False
+# where the binary will be placed
+verilator_install_prefix: "/home/{{ target_user }}/.local"
+

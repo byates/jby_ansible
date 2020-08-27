@@ -1,0 +1,53 @@
+---
+# tasks file for ansible-tmux
+#
+- name: Make sure prereqs are installed
+  include_role:
+    name: grog.package
+  vars:
+    package_list:
+      - name: autoconf
+      - name: automake
+      - name: pkg-config
+        yum: pkgconfig
+      - name: ncurses-devel
+        apt: libncurses-dev
+      - name: libevent-devel
+        apt: libevent-dev
+
+- name: "tmux | Get $HOME"
+  command: "echo $HOME"
+  register: shell_home_dir
+  changed_when: false
+
+- name: "tmux | Set $HOME"
+  set_fact:
+    temp_base: "{{ shell_home_dir.stdout }}"
+    temp_src_dir: "{{ shell_home_dir.stdout }}/tmux-{{tmux_git_tag}}"
+
+- name: Download and extract the binary files
+  unarchive:
+    src: "https://github.com/tmux/tmux/releases/download/{{tmux_git_tag}}/tmux-{{tmux_git_tag}}.tar.gz"
+    dest: "{{ temp_base }}"
+    remote_src: yes
+  changed_when: false
+
+- name: Configuring TMUX build system
+  shell: "LDFLAGS='-L/usr/local/lib -Wl,-rpath=/usr/local/lib' ./configure --prefix=/usr/local"
+  args:
+    chdir: "{{ temp_src_dir }}"
+  register: tmux_configure
+  changed_when: false
+
+- name: Make and install tmux
+  shell: make -j 4 && make install
+  args:
+    chdir: "{{ temp_src_dir }}"
+  when: (tmux_configure.rc == 0)
+
+- name: Delete the temp directory now that we've got what we want.
+  file:
+    path: "{{ temp_src_dir }}"
+    state: absent
+  changed_when: false
+

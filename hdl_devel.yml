@@ -1,0 +1,23 @@
+---
+
+- name: Install Scala (for SpinalHDL)
+  hosts: hdl
+  roles:
+  - role: ansible-scala
+    vars:
+      sbt_version: 1.3.13
+      force_update: false
+    when: 1
+
+- name: Install Verilator
+  hosts: hdl
+  roles:
+  - role: ansible-verilator
+    when: 1
+
+- name: Install svlint
+  hosts: hdl
+  roles:
+  - role: ansible-svlint
+    svlint_git_tag: "0.4.7"
+    svlint_force_update: false

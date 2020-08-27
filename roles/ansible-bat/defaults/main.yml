@@ -1,0 +1,8 @@
+bat_version: "0.12.1"
+
+bat_dest: "/usr/bin"
+
+force_update: False
+
+reinstall: False
+

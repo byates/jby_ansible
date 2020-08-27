@@ -1,0 +1,8 @@
+---
+# math here assumes ansible_memtotal_mb is >= ~900MiB. The facts script will
+# diable the hugepage if this condition is not met.
+num_2M_pages: "{{ [ desired_2m_pages , (ansible_memtotal_mb / 4) - 192] | min | int }}"
+# math here assumes ansible_memtotal_mb is >= 4GiB. The facts script will
+# diable the hugepage if this condition is not met.
+num_1G_pages: "{{ [ desired_1g_pages , (ansible_memtotal_mb / 1024) - 2] | min | int }}"
+

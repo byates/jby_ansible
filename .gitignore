@@ -1,0 +1,4 @@
+private_keys/
+inventory.yml
+*.code-workspace
+

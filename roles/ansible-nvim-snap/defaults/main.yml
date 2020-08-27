@@ -1,0 +1,7 @@
+---
+
+# Which nodejs version to install.
+node_version: "13"
+# Install diff-so-fancy via npm
+install_dsf: true
+

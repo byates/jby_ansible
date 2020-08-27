@@ -1,0 +1,86 @@
+---
+# tasks file for ansible-nvim-snap
+#
+- name: Make sure snapd and other prereqs are installed
+  include_role:
+    name: grog.package
+  vars:
+    package_list:
+      - name: snapd
+      - name: python3
+      - name: python3-pip
+
+- name: Start snapd service
+  service:
+    name: snapd
+    enabled: yes
+    state: started
+  when: not wsl_active
+
+- name: wait for snapd to be ready
+  command: snap wait system seed.loaded
+  changed_when: false
+  when: not wsl_active
+
+- name: Create symbolic link so classic snaps will work on CentOS
+  file:
+    src: "/var/lib/snapd/snap"
+    dest: "/snap"
+    state: link
+  when: ansible_distribution == 'CentOS'
+
+- name: Install nodejs via snap
+  snap:
+    name: node
+    classic: yes
+    channel: "{{ node_version }}"
+  when: ansible_distribution == 'CentOS'
+
+- name: Install nodejs and npm via apt for Ubuntu
+  include_role:
+    name: grog.package
+  vars:
+    package_list:
+      - name: nodejs
+      - name: npm
+  when: (ansible_distribution == 'Ubuntu') or (ansible_distribution == 'Linux Mint') or (ansible_distribution == 'Pop!_OS')
+
+- name: Install nvim via snap
+  snap:
+    name: nvim
+    classic: yes
+    channel: beta
+  when: not wsl_active
+
+- name: Install nvim via apt when in WSL
+  include_role:
+    name: grog.package
+  vars:
+    package_list:
+      - name: neovim
+      - name: ccls
+  when: wsl_active
+
+- name: Install ccls via snap
+  snap:
+    name: ccls
+    classic: yes
+  when: not wsl_active
+
+- name: Create symbolic link so CentOS can find NPM in non-interactive shells
+  file:
+    src: "/var/lib/snapd/snap/bin/npm"
+    dest: "/usr/bin/npm"
+    state: link
+  when: ansible_distribution == 'CentOS'
+
+- name: Install "neovim" node.js package.
+  npm:
+    name: neovim
+    global: yes
+
+- name: Install pip3 neovim module
+  pip:
+    name: neovim
+    executable: pip3
+

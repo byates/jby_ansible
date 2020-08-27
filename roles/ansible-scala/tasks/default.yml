@@ -1,0 +1,48 @@
+---
+
+- name: Gather variables for this operating system
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}.yml"
+    - "{{ ansible_os_family | lower }}.yml"
+    - "default.yml"
+
+- name: Install Java JRE
+  apt:
+    name: default-jre
+    state: present
+  become: yes
+
+- name: Install Java JDK
+  apt:
+    name: default-jdk
+    state: present
+  become: yes
+
+- name: Make sure .local/bin exists
+  file:
+    path: "/home/{{ target_user }}/.local/bin"
+    state: directory
+
+- name: Delete existing SBT directory if force_update it true
+  file:
+    path: "/home/{{ target_user }}/.local/share/sbt"
+    state: absent
+  when: force_update
+
+- name: Download and extract the SBT files
+  unarchive:
+    src: "https://piccolo.link/sbt-{{ sbt_version }}.tgz"
+    dest: "/home/{{ target_user }}/.local/share"
+    remote_src: yes
+    creates: "/home/{{ target_user }}/.local/share/sbt"
+
+- name: Create symbolic link to SBT binary
+  file:
+    src: "/home/{{ target_user }}/.local/share/sbt/bin/sbt"
+    dest: "/home/{{ target_user }}/.local/bin/sbt"
+    state: link
+

@@ -1,0 +1,39 @@
+---
+# tasks file for ansible-verilator
+#
+- name: "verilator | Get $HOME"
+  command: "echo $HOME"
+  register: shell_home_dir
+  changed_when: false
+
+- name: "verilator | Set $HOME"
+  set_fact:
+    temp_base: "{{ shell_home_dir.stdout }}"
+    temp_src_dir: "{{ shell_home_dir.stdout }}/verilator-{{verilator_git_tag}}"
+
+- name: "verilator | Download and extract the source files"
+  unarchive:
+    src: "https://github.com/verilator/verilator/archive/v{{ verilator_git_tag }}.tar.gz"
+    dest: "{{ temp_base }}"
+    remote_src: yes
+  changed_when: false
+
+- name: "verilator | configure the build system"
+  shell: "unset VERILATOR_ROOT;autoconf;./configure --prefix={{ verilator_install_prefix }}"
+  args:
+    chdir: "{{ temp_src_dir }}"
+  register: verilator_configure
+  changed_when: false
+
+- name: "verilator | make and install"
+  shell: make -j$(nproc) && make install
+  args:
+    chdir: "{{ temp_src_dir }}"
+  when: (verilator_configure.rc == 0)
+
+- name: "verilator | Delete the temp directory"
+  file:
+    path: "{{ temp_src_dir }}"
+    state: absent
+  changed_when: false
+

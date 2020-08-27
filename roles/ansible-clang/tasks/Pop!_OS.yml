@@ -1,0 +1,104 @@
+---
+
+- name: Include platform-specific variables
+  include_vars: "vars/{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml"
+
+- name: Add LLVM APT key
+  apt_key:
+    url: https://apt.llvm.org/llvm-snapshot.gpg.key
+    state: present
+  become: yes
+
+- name: Add LLVM APT repository
+  apt_repository:
+    repo: "{{ llvm_apt_repo }}"
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Install Clang
+  apt:
+    name: clang-{{ clang_version }}
+    state: present
+  become: yes
+
+- name: Install lldb
+  apt:
+    name: lldb-{{ clang_version }}
+    state: present
+  become: yes
+
+- name: Install lld
+  apt:
+    name: lld-{{ clang_version }}
+    state: present
+  become: yes
+
+- name: Install clangd
+  apt:
+    name: clangd-{{ clang_version }}
+    state: present
+  become: yes
+
+- name: Install clang-tools
+  apt:
+    name: clang-tools-{{ clang_version }}
+    state: present
+  become: yes
+
+- name: Install clang-format
+  apt:
+    name: clang-format-{{ clang_version }}
+    state: present
+  become: yes
+
+- name: Install clang-tidy
+  apt:
+    name: clang-tidy-{{ clang_version }}
+    state: present
+  become: yes
+
+# Make new clang stuff the defaults
+- name: Set new clang as the default
+  alternatives:
+    name: clang
+    link: /usr/bin/clang
+    path: /usr/bin/clang-{{ clang_version }}
+  become: yes
+
+- name: Set new llvm-ar as the default
+  alternatives:
+    name: llvm-ar
+    link: /usr/bin/llvm-ar
+    path: /usr/bin/llvm-ar-{{ clang_version }}
+  become: yes
+
+- name: Set new llvm-as as the default
+  alternatives:
+    name: llvm-as
+    link: /usr/bin/llvm-as
+    path: /usr/bin/llvm-as-{{ clang_version }}
+  become: yes
+
+- name: Set new clang-tidy as the default
+  alternatives:
+    name: clang-tidy
+    link: /usr/bin/clang-tidy
+    path: /usr/bin/clang-tidy-{{ clang_version }}
+  become: yes
+
+- name: Set new clang-tidy as the default
+  alternatives:
+    name: clang-tidy
+    link: /usr/bin/clang-tidy
+    path: /usr/bin/clang-tidy-{{ clang_version }}
+  become: yes
+
+- name: Set clang as default C compiler
+  copy:
+    content: export CC=clang-{{ clang_version }}
+    dest: /etc/profile.d/set-clang-cc.sh
+  when: set_clang_cc
+  become: yes
+
+

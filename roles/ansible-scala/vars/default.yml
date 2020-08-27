@@ -1,0 +1,1 @@
+# This file is only pulled in if there is no ansible_distribution/ansible_distribution_version file found.

@@ -1,0 +1,26 @@
+---
+# tasks file for ansible-delta
+#
+- name: Download and extract the binary files
+  unarchive:
+    src: "https://github.com/dandavison/delta/releases/download/{{ delta_version }}/delta-{{ delta_version }}-x86_64-unknown-linux-musl.tar.gz"
+    dest: /run
+    remote_src: yes
+  changed_when: false
+
+- name: Copy the exectuable to {{ delta_dest }}
+  copy:
+    remote_src: yes
+    src: "/run/delta-{{ delta_version }}-x86_64-unknown-linux-musl/delta"
+    dest: "{{ delta_dest }}/delta"
+    owner: root
+    group: root
+    mode: '0755'
+  changed_when: true
+
+- name: Delete the temp directory now that we've got what we want.
+  file:
+    path: "/run/delta-{{ delta_version }}-x86_64-unknown-linux-musl"
+    state: absent
+  changed_when: false
+

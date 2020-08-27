@@ -1,0 +1,24 @@
+#!/bin/bash
+hugepages_2M=false
+hugepages_1G=false
+totalmem=$(free -m | awk '/^Mem:/{print $2}')
+
+if grep -q "pse" /proc/cpuinfo; then
+    if [ $totalmem -ge 900 ]; then
+        hugepages_2M=true
+    fi
+fi
+
+if grep -q "pdpe1gb" /proc/cpuinfo; then
+    if [ $totalmem -ge 4096 ]; then
+        hugepages_1G=true
+    fi
+fi
+
+cat <<EOF
+{
+    "hugepages_2M" : $hugepages_2M,
+    "hugepages_1G" : $hugepages_1G
+}
+EOF
+

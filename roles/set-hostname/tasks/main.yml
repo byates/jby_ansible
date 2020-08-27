@@ -1,0 +1,19 @@
+---
+# tasks file for set-hostname
+#
+- name: update  hostname
+  block:
+
+    - name: Change the hostname to match inventory name
+      command: hostnamectl set-hostname "{{ new_hostname }}"
+
+    - name: Fix /etc/hosts removing the old hostname
+      tags:
+        - hosts
+      lineinfile:
+        state=present
+        dest=/etc/hosts
+        line="127.0.0.1 {{ new_hostname }} {{ new_hostname }}.localdomain {{ new_hostname }} {{ new_hostname }}.localdomain4"
+
+  when: (ansible_hostname != new_hostname) and (inventory_hostname != "127.0.0.1")
+

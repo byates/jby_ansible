@@ -1,0 +1,26 @@
+---
+
+- name: Intall clang
+  dnf:
+    name: clang
+    state: present
+  become: yes
+
+- name: Install lldb
+  dnf:
+    name: lldb
+    state: present
+  become: yes
+
+- name: Install lld
+  dnf:
+    name: lld
+    state: present
+  become: yes
+
+- name: Install clang-tools
+  dnf:
+    name: clang-tools-extra
+    state: present
+  become: yes
+

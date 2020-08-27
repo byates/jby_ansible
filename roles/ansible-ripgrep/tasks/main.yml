@@ -1,0 +1,8 @@
+---
+- include: "{{ lookup('first_found', install_file) }}"
+  vars:
+    install_file:
+      - "install_{{ ansible_distribution|replace(' ', '_') }}.yml"
+      - "install_{{ ansible_os_family }}.yml"
+      - "install_default.yml"
+

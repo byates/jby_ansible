@@ -1,0 +1,5 @@
+grub_base_path: /etc/default/grub
+grub_conf_file: /boot/grub2/grub.cfg
+grub_conf_file_efi: "/boot/efi/EFI/{{ ansible_distribution | lower | replace(' ', '') }}/grub.cfg"
+grub_update_cmd: "/usr/sbin/grub2-mkconfig -o {{ grub_config_file_boot }}"
+

@@ -1,0 +1,26 @@
+---
+
+- name: Check if protoc is installed
+  command: protoc --version
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: version_check
+
+- set_fact:
+    protoc_version: "{{ version_check.stdout | regex_replace('^libprotoc ([0-9.]+).*', '\\1') }}"
+  when: >
+    (version_check.rc == 0)
+
+- set_fact: protoc_ver_match="{{ protobuf_version is search(protoc_version | default("xxx")) }}"
+
+- name: Force install if the version numbers do not match.
+  set_fact:
+    protoc_do_install: true
+  when: >
+    protoc_force_update or
+    (not protoc_ver_match)
+
+- include_tasks: install_from_zip.yml
+  when: (protoc_do_install | default(false))
+

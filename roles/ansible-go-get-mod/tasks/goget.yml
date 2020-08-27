@@ -1,0 +1,24 @@
+---
+# tasks file for ansible-go-git-mod
+#
+
+- name: Go-Get-Mod | Check if module is already installed
+  shell: "stat {{ MOD_GOPATH }}/pkg/mod/{{ item.url }}* -t"
+  register: module_installed
+  changed_when: no
+  ignore_errors: true
+  failed_when: false
+
+- name: Skip install if already installed and force is false.
+  set_fact:
+    do_install: "{{ (module_installed.rc != 0) or ((item.force| default(False)) == True) }}"
+
+- name: "Go-Get-Mod | Run get commands"
+  command: "{{ MOD_GOROOT }}/bin/go get -u {{ item.url }}"
+  environment:
+    GOPATH: "{{ MOD_GOPATH }}"
+    GOROOT: "{{ MOD_GOROOT }}"
+    GO111MODULE: "{{ MOD_GO111MODULE }}"
+  when: do_install
+
+

@@ -1,0 +1,36 @@
+---
+# tasks file for ansible-go-git-mod
+#
+- name: "Go-Get-Mod | Get $HOME"
+  command: "echo $HOME"
+  register: shell_home_dir
+  changed_when: false
+
+- name: "Go-Get-Mod | Set $HOME"
+  set_fact:
+    user_dir: "{{ shell_home_dir.stdout }}"
+
+- name: "Go-Get-Mod | Define MOD_GOROOT"
+  set_fact:
+    MOD_GOROOT: /usr/local/go
+  when: MOD_GOROOT is not defined
+
+- name: "Go-Get-Mod | Define MOD_GOPATH"
+  set_fact:
+    MOD_GOPATH: "{{ user_dir }}/go"
+  when: MOD_GOPATH is not defined
+
+- name: "Go-Get-Mod | Define MOD_GO111MODULE"
+  set_fact:
+    MOD_GO111MODULE: "on"
+    when: MOD_GO111MODULE is not defined
+
+- name: Go-Get-Mod | Check if go is installed
+  stat:
+    path: "{{ MOD_GOROOT }}/bin/go"
+  register: go_binary
+
+- name: "Go-Get-Mod | Run get commands"
+  include_tasks: goget.yml
+  with_items: "{{ mod_list }}"
+

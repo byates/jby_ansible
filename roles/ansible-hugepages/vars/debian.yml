@@ -1,0 +1,5 @@
+grub_base_path: /etc/default/grub
+grub_conf_file: /boot/grub/grub.cfg
+grub_conf_file_efi: /boot/efi/EFI/ubuntu/grub.cfg
+grub_update_cmd: "/usr/sbin/update-grub"
+
