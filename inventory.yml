@@ -1,0 +1,53 @@
+---
+#### YAML inventory file
+
+# the two first lines above are needed for the script
+# to identify the file as an inventory file
+#
+# See: https://github.com/leboncoin/simple-ansible-inventory
+#
+# The 'build-inventory.py' scirpt is used to convert this yaml file
+# into an ansible compatible file. This file is much simpler to use.
+#
+# EXAMPLE COMMANDS:
+#   Raw (json) output from script:
+#       ./build-inventory.py --list
+#
+#   YAML output as ansible sees it:
+#       ansible-inventory -i build-inventory.py --list -y
+#
+#   Running a playbook with the script:
+#       ansible-playbook -i build-inventory.py --limit v1 common.yml
+#
+## Structure
+# hosts:
+#   - host: <HOSTNAME>
+#     # if needed
+#     hostvars:
+#      key: value
+#     # if needed
+#     groups:
+#       - group1
+#       - group2
+#
+#
+# Possible Groups:
+#    jbyconfig       - installs JBY gitconfig, bashrc, and nvim
+#    devel           - installs all development tools
+#    hdl             - installs HDL tools
+#    jby_user        - creates the JBY user account
+#    dpdk            - installs and configs DPDK
+#    local_vms       - 
+#    vagrant         - 
+#
+##########################
+###  Hosts definition  ###
+##########################
+hosts:
+  - host: 127.0.0.1
+    hostvars:
+      ansible_connection: local
+      ansible_user: brent
+    groups: [ jbyconfig, devel, hdl ]
+
+
