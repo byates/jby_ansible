@@ -38,11 +38,9 @@
 
 - name: Install nodejs and npm via apt for Ubuntu
   include_role:
-    name: grog.package
+    name: geerlingguy.nodejs
   vars:
-    package_list:
-      - name: nodejs
-      - name: npm
+    nodejs_version: "12.x"
   when: (ansible_distribution == 'Ubuntu') or (ansible_distribution == 'Linux Mint') or (ansible_distribution == 'Pop!_OS')
 
 - name: Install nvim via snap
