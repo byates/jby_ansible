@@ -27,6 +27,11 @@
     path: "/home/{{ target_user }}/.local/bin"
     state: directory
 
+- name: Make sure .local/share exists
+  file:
+    path: "/home/{{ target_user }}/.local/share"
+    state: directory
+
 - name: Delete existing SBT directory if force_update it true
   file:
     path: "/home/{{ target_user }}/.local/share/sbt"
