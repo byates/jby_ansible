@@ -47,13 +47,18 @@
           { name: hwloc },
           { name: iperf3 },
           { name: ninja-build },
-          { name: meson },
           { name: ctags },
         ],
       when: 1
     }
 
-- name: Install kernel packages
+- name: Install meson module using pip3
+  pip:
+    name: meson
+    executable: pip3
+    extra_args: --user
+
+ - name: Install kernel packages
   hosts: devel
   roles:
   - { role: grog.package,
