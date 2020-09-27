@@ -53,12 +53,14 @@
     }
 
 - name: Install meson module using pip3
-  pip:
-    name: meson
-    executable: pip3
-    extra_args: --user
+  hosts: devel
+  tasks:
+  - pip:
+      name: meson
+      executable: pip3
+      extra_args: --user
 
- - name: Install kernel packages
+- name: Install kernel packages
   hosts: devel
   roles:
   - { role: grog.package,
