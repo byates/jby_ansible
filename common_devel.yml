@@ -156,7 +156,7 @@
   roles:
   - role: yogo1212.ansible_go
     vars:
-      go_version: "1.14"
+      go_version: "1.15.2"
     when: 1
 
 - name: Install Go module lazygit
