@@ -85,7 +85,27 @@
   notify:
     - update grub config
 
-- name: Change MLOCK hard limits
+-- name: Add configuration to Azure GRUB - 2M
+  lineinfile:
+    path: "/etc/default/grub.d/50-cloudimg-settings.cfg"
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+    line: "GRUB_CMDLINE_LINUX_DEFAULT=\"console=tty1 console=ttyS0 earlyprintk=ttyS0 default_hugepagesz=2M hugepagesz=2M hugepages={{ num_2M_pages }}\""
+  register: grub_2m_changed
+  when: ansible_local.hugepages.hugepages_1G == false and ansible_local.hugepages.hugepages_2M == true
+  notify:
+    - update grub config
+
+- name: Add configuration to Azure GRUB - 1G
+  lineinfile:
+    path: "/etc/default/grub.d/50-cloudimg-settings.cfg"
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+    line: "GRUB_CMDLINE_LINUX_DEFAULT=\"console=tty1 console=ttyS0 earlyprintk=ttyS0 default_hugepagesz=1G hugepagesz=1G hugepages={{ num_1G_pages }}\""
+  register: grub_1g_changed
+  when: ansible_local.hugepages.hugepages_1G == true
+  notify:
+    - update grub config
+
+-- name: Change MLOCK hard limits
   lineinfile:
     path: /etc/security/limits.conf
     regexp: '^\*[ \t]+hard[ \t]+memlock'
