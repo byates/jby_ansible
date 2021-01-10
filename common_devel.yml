@@ -48,6 +48,7 @@
           { name: iperf3 },
           { name: ninja-build },
           { name: ctags },
+          { name: libtool }
         ],
       when: 1
     }
@@ -156,7 +157,7 @@
   roles:
   - role: yogo1212.ansible_go
     vars:
-      go_version: "1.15.5"
+      go_version: "1.15.6"
     when: 1
 
 - name: Install Go module lazygit
