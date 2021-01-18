@@ -1,0 +1,62 @@
+---
+# tasks file for ansible-vim
+#
+- name: Make sure prereqs are installed
+  include_role:
+    name: grog.package
+  args:
+    apply:
+      become: true
+  vars:
+    package_list:
+      - name: autoconf
+      - name: automake
+      - name: pkg-config
+        yum: pkgconfig
+      - name: ncurses-devel
+        apt: libncurses-dev
+      - name: libevent-devel
+        apt: libevent-dev
+
+- name: Create temporary build directory
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: build
+  register: build_dir
+  changed_when: false
+
+- name: "vim | set repo location"
+  set_fact:
+    repo_dir: "{{ build_dir.path }}"
+
+- ansible.builtin.debug:
+    msg: "Cloning VIM repo to: '{{ repo_dir }}'"
+
+- name: "vim | clone repo"
+  git:
+    repo: https://github.com/vim/vim.git
+    dest: "{{ repo_dir }}"
+    version: "{{ vim_git_tag }}"
+  changed_when: false
+
+- name: "vim | make"
+  shell: "make"
+  args:
+    chdir: "{{ repo_dir }}"
+  register: vim_make
+  changed_when: false
+
+- name: "vim : install"
+  shell: make install
+  args:
+    chdir: "{{ repo_dir }}"
+  become: true
+  when: (vim_make.rc == 0)
+
+- name: "vim | cleanup temp dir"
+  file:
+    path: "{{ repo_dir }}"
+    state: absent
+  ignore_errors: true
+  changed_when: false
+

@@ -1,0 +1,29 @@
+---
+# tasks file for ansible-vim
+#
+- name: Check if vim is installed
+  command: vim --version
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: version_check
+
+- name: "vim | Extract VIM version"
+  set_fact:
+    installed_version: "{{ version_check.stdout_lines | first | regex_replace(\"^VIM - Vi IMproved ([0-9]+.[0-9]+).*\", \"\\1\") }}"
+  when: (version_check.rc == 0) and (version_check.stdout)
+
+- ansible.builtin.debug:
+    msg: "VIM installed version: {{ installed_version }}"
+
+- name: Force install if the version numbers do not match.
+  set_fact:
+    vim_do_install: true
+  when: >
+    vim_force_update or
+    (version_check.rc != 0) or
+    (installed_version != vim_version)
+
+- include_tasks: install_from_src.yml
+  when: (vim_do_install | default(false))
+

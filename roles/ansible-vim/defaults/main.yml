@@ -1,0 +1,8 @@
+# Git tag is used when building from source
+vim_git_tag: "HEAD"
+# Version to check (major.minor) as vim doesn't track same as git tag
+vim_version: "8.2"
+# When true then always rebuild from source
+vim_force_update: False
+
+
