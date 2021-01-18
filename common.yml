@@ -87,12 +87,14 @@
     become: yes
     when: 1
 
-- name: Install nvim via snaps
+- name: Install vim
   hosts: all
   strategy: free
-  become: true
   roles:
-  - role: ansible-nvim-snap
+  - role: ansible-vim
+    vim_git_tag: "HEAD"
+    vim_version: "8.2"
+    vim_force_update: false
     when: 1
 
 - name: Install tmux
@@ -127,7 +129,7 @@
     vars:
       target_username: "{{ target_user }}"
 
-  - role: jby-nvim-config
+  - role: jby-vim-config
     vars:
       target_username: "{{ target_user }}"
 
