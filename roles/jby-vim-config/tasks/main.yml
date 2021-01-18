@@ -1,0 +1,83 @@
+---
+
+# Clone all the plugin repositories
+# VIM has a built-in plugin manager which looks for things in the "~/.vim/pack/plugins"
+# path. Plugins in the "start" dir under this path will be auto-loaded.
+- name: clone the plugin repos
+  become_user: "{{ target_username }}"
+  git:
+    repo: "https://github.com/{{ item.repo_owner }}/{{ item.repo_name }}.git"
+    dest: "/home/{{ target_username }}/.vim/pack/plugins/start/{{ item.repo_name }}"
+  with_items:
+    -
+      repo_owner: "scrooloose"
+      repo_name: "nerdtree"
+    -
+      repo_owner: "tpope"
+      repo_name: "vim-fugitive"
+    -
+      repo_owner: "vim-airline"
+      repo_name: "vim-airline"
+    -
+      repo_owner: "vim-airline"
+      repo_name: "vim-airline-themes"
+    -
+      repo_owner: "ConradIrwin"
+      repo_name: "vim-bracketed-paste"
+    -
+      repo_owner: "markonm"
+      repo_name: "traces.vim"
+  when: 1
+
+- name: Download the vimrc file to temp location
+  become_user: "{{ target_username }}"
+  get_url:
+    url: "{{ vimrc_url }}"
+    dest: "/home/{{ target_username }}/.ansible-vimrc-tmp"
+    mode: '0664'
+  changed_when: false
+
+- name: Calculate md5 of temp file
+  stat: path="/home/{{ target_username }}/.ansible-vimrc-tmp"
+  register: temp_file_stat
+
+- name: Calculate md5 of current .vimrc
+  stat: path="/home/{{ target_username }}/.vimrc"
+  register: current_file_stat
+
+- name: Check for file for changes
+  command: test {{ temp_file_stat.stat.checksum }} = {{ current_file_stat.stat.checksum }}
+  register: change_check
+  changed_when: false
+  failed_when: false
+  when: current_file_stat.stat.checksum is defined
+
+- name: Check test return code to see if the file needs to be updated
+  set_fact:
+    update_needed: true
+  when: (current_file_stat.stat.checksum is not defined) or (change_check.rc != 0)
+
+- name: Maybe backup the original vimrc file
+  become_user: "{{ target_username }}"
+  copy:
+    remote_src: no
+    src: "/home/{{ target_username }}/.vimrc"
+    dest: "/home/{{ target_username }}/.vimrc.bak"
+    mode: '0664'
+  when: (current_file_stat.stat.checksum is defined) and (update_needed | default(false))
+
+- name: Maybe update the vimrc file
+  become_user: "{{ target_username }}"
+  copy:
+    remote_src: no
+    src: "/home/{{ target_username }}/.ansible-vimrc-tmp"
+    dest: "/home/{{ target_username }}/.vimrc"
+    mode: '0664'
+  when: (update_needed | default(false))
+
+- name: "Cleanup temp file"
+  file:
+    path: "/home/{{ target_username }}/.ansible-vimrc-tmp"
+    state: absent
+  ignore_errors: true
+  changed_when: false

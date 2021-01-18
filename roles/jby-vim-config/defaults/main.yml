@@ -1,0 +1,4 @@
+target_username: "{{ ansible_user }}"
+
+# This will grab the most recent version
+vimrc_url: "https://gist.githubusercontent.com/byates/5326277344f3b826f98b3250bb369990/raw/"
