@@ -1,5 +1,5 @@
 ---
-protobuf_version: 4.0.0-rc2
-protobuf_name: 4.0.0-rc-2
-protoc_checksum: sha256:568ae47c4fd83281c4c76d6c3c96d9ba45704f220bb6ce4197b9f86aba05848c
+protobuf_version: 3.14.0
+protobuf_name: 3.14.0
+protoc_checksum: sha256:a2900100ef9cda17d9c0bbf6a3c3592e809f9842f2d9f0d50e3fba7f3fc864f0
 protoc_force_update: false
